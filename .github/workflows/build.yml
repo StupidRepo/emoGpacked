@@ -19,6 +19,9 @@ jobs:
         with:
           go-version: 1.24.0
 
+      - name: Get dependencies
+        run: go mod tidy
+
       - name: Build
         run: go build -o emoGpacked ./cmd/
 
@@ -37,6 +40,9 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: 1.24.0
+
+      - name: Get dependencies
+        run: go mod tidy
 
       - name: Build
         run: go build -o emoGpacked.exe ./cmd/
