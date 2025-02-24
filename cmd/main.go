@@ -28,15 +28,19 @@ func main() {
 	}
 
 	if *token == "" {
-		utils.Logger.Fatal("No token provided. Please provide a token in the .env file.")
+		utils.Logger.Println("No token provided.")
 	}
 
 	if *packURL == "" {
-		utils.Logger.Fatal("No pack URL provided. Please provide a pack URL using the -pack flag.")
+		utils.Logger.Println("No pack URL provided.")
 	}
 
 	if *serverID == "" {
-		utils.Logger.Fatal("No server ID provided. Please provide a server ID using the -server flag.")
+		utils.Logger.Println("No server ID provided.")
+	}
+
+	if *token == "" || *packURL == "" || *serverID == "" {
+		utils.Logger.Fatal("Run ./emoGpacked --help for help.")
 	}
 
 	utils.Session = revoltgo.New(*token)
@@ -69,10 +73,7 @@ func StartEmojiProcess(url *string, serverID *string) {
 		utils.Logger.Fatalf("Failed to get the emoji pack: %v", err)
 	}
 
-	dlEmojiPack := models.DownloadEmojiPack{
-		Name:   emojiPack.Name,
-		Author: emojiPack.Author,
-	}
+	var dlEmojis []models.DownloadedEmoji
 
 	// Download the emojis
 	for _, emoji := range emojiPack.Emojis {
@@ -107,20 +108,20 @@ func StartEmojiProcess(url *string, serverID *string) {
 
 		emojiSplit := strings.Split(emoji.Name, "-")
 		emojiName := strings.Join(emojiSplit[1:], "")
-		dlEmojiPack.Emojis = append(dlEmojiPack.Emojis, models.DownloadedEmoji{
+		dlEmojis = append(dlEmojis, models.DownloadedEmoji{
 			Name: emojiName,
 			Path: fmt.Sprintf("%s/%s", *utils.TempDir, ending),
 		})
 	}
 
-	length := len(dlEmojiPack.Emojis)
+	length := len(dlEmojis)
 	if length == 0 {
 		utils.Logger.Fatal("Failed to download any emojis.")
 	}
 
 	utils.Logger.Printf("Downloaded %d emojis.", length)
 
-	for i, emoji := range dlEmojiPack.Emojis {
+	for i, emoji := range dlEmojis {
 		err, uplFile := utils.UploadEmojiToAutumn(emoji.Path)
 		if err != nil {
 			utils.Logger.Printf("Failed to upload emoji %s: %v", emoji.Name, err)
