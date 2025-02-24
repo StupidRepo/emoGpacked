@@ -2,8 +2,8 @@
 A Go tool for uploading emoji.gg packs to a Revolt server.
 
 ## Usage
-0. A Windows binary is available in the [releases][r] tab.
-   - See the [building](#building) section for building the yourself.
+0. Download latest binaries from the latest GH actions build [here][nightly].
+   - See the [building](#building) section for building yourself.
 1. Go to [emoji.gg/packs][p] and choose a pack.
 2. Copy the pack's URL (e.g. `https://emoji.gg/pack/14495-kermit-pack`), and add `&type=json` to the end. 
    - e.g. `https://emoji.gg/pack/14495-kermit-pack&type=json`
@@ -47,5 +47,5 @@ If you know an emoji pack website which supplies data in the following JSON form
    - If you're on Windows, run `go build -o emoGpacked.exe ./cmd` instead.
 4. The binary will be in the repository directory.
 
-[r]: https://github.com/StupidRepo/emoGpacked/releases
+[nightly]: https://github.com/StupidRepo/emoGpacked/releases
 [p]: https://emoji.gg/packs
