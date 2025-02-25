@@ -10,8 +10,9 @@ type Emoji struct {
 }
 
 type DownloadedEmoji struct {
-	Name string
-	Path string
+	Name   string
+	Path   string
+	Ending string
 }
 
 type UploadedFile struct {

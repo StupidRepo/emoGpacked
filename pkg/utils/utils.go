@@ -61,9 +61,9 @@ func GETJson(url string, target interface{}) error {
 }
 
 // UploadEmojiToAutumn uploads an emoji to Revolt Autumn.
-func UploadEmojiToAutumn(path string) (error, *models.UploadedFile) {
+func UploadEmojiToAutumn(emoji models.DownloadedEmoji) (error, *models.UploadedFile) {
 	// Open the file
-	file, err := os.Open(path)
+	file, err := os.Open(emoji.Path)
 	if err != nil {
 		return err, nil
 	}
@@ -74,11 +74,16 @@ func UploadEmojiToAutumn(path string) (error, *models.UploadedFile) {
 		}
 	}(file)
 
+	// Detect the MIME type of the file
+	//mime, err := mimetype.DetectFile(emoji.Path)
+	//if err != nil {
+	//	return err, nil
+	//}
+
 	var requestBody bytes.Buffer
 	writer := multipart.NewWriter(&requestBody)
 
-	// Create a form file
-	part, err := writer.CreateFormFile("file", file.Name())
+	part, err := writer.CreateFormFile("file", emoji.Ending)
 	if err != nil {
 		return err, nil
 	}
@@ -156,13 +161,4 @@ func Download(reader io.Reader, fileName string) error {
 	}
 
 	return nil
-}
-
-func OpenFile(name string) (error, *os.File) {
-	file, err := os.Open(name)
-	if err != nil {
-		return err, nil
-	}
-
-	return nil, file
 }
