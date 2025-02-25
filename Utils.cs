@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Security.Cryptography;
+using System.Text;
 using emoGpacked.APIs;
 using emoGpacked.Models;
 using Newtonsoft.Json;
@@ -12,6 +13,35 @@ internal static class Utils
 	internal static readonly HttpClient DLClient = new();
 	
 	public static readonly string TempDir = Path.GetTempPath();
+
+	internal static string[] GetServerNames()
+	{
+		if(!File.Exists("servers.json"))
+		{
+			var file = File.CreateText("servers.json");
+			file.Write("[]");
+			file.Close();
+
+			return [];
+		}
+		
+		var servers = File.ReadAllText("servers.json");
+		var serverIds = JsonConvert.DeserializeObject<string[]>(servers) ?? [];
+		var serverNames = new List<string>();
+		
+		foreach (var serverId in serverIds)
+		{
+			var server = RevoltClient.Instance.Get<Server>("https://api.revolt.chat/servers/" + serverId);
+			if (!server.IsSuccess)
+			{
+				throw new ServerSentErrorException(server.Error!);
+			}
+			
+			serverNames.Add(server.Result!.Name);
+		}
+		
+		return serverNames.ToArray();
+	}
 	
 	internal static void ProcessSingleEmoji(IEmojiApi api, string emojiId, string serverId)
 	{
@@ -26,8 +56,7 @@ internal static class Utils
 
 			DownloadEmoji(emoji);
 
-			var response =
-				RevoltClient.Instance.UploadToAutumn<Emoji.UploadResponse>("emojis", emoji.FileInfo.FullName);
+			var response = RevoltClient.Instance.UploadToAutumn<Emoji.UploadResponse>("emojis", emoji.FileInfo.FullName);
 			if (!response.IsSuccess)
 			{
 				throw new ServerSentErrorException(response.Error!);
@@ -42,7 +71,7 @@ internal static class Utils
 		}
 		catch (Exception e)
 		{
-			AnsiConsole.MarkupLine($"[bold red]Error trying to process {emojiId}: {e.Message}[/]");
+			AnsiConsole.MarkupLine($"[bold red]Error trying to process emoji {emojiId}: {e.Message}[/]");
 		}
 	}
 	
@@ -78,7 +107,7 @@ internal static class Utils
 		} 
 		catch (Exception e)
 		{
-			AnsiConsole.MarkupLine($"[bold red]Error trying to process {packId}: {e.Message}[/]");
+			AnsiConsole.MarkupLine($"[bold red]Error trying to process pack {packId}: {e.Message}[/]");
 		}
 	}
 	

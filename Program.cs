@@ -64,9 +64,19 @@ internal class Program
 				.UseConverter(api => api.APIName)
 		);
 
-		// var servers = Utils.GetServers();
-
-		var serverId = "01JMYEVRSYXG98MT2504QAPQ2R";
+		var servers = Utils.GetServerNames();
+		if (servers.Length == 0)
+		{
+			AnsiConsole.MarkupLine("[bold red]No servers found in servers.json! Exiting...[/]");
+			return;
+		}
+		
+		// Ask for the server
+		var serverId = AnsiConsole.Prompt(
+			new SelectionPrompt<string>()
+				.Title("Which server do you want to upload emojis to?")
+				.AddChoices(servers)
+		);
 		
 		// Ask the user if they want
 		while (true)
