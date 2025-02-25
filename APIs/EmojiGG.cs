@@ -1,11 +1,15 @@
-using emoGpacked.Models;
+using Newtonsoft.Json;
+using Spectre.Console;
+using Emoji = emoGpacked.Models.Emoji;
 
 namespace emoGpacked.APIs;
 
-public class EmojiGG : IEmojiApi
+public class EmojiGG : IEmojiAPI
 {
 	public string APIName => "emoji.gg"; // Displayed to user
 	private string APIUrl => "https://emoji.gg/";
+	
+	public string? InputText => null; // Displayed to user
 	
 	public Emoji[] GetEmojisFromPack(string packId)
 	{
@@ -24,18 +28,58 @@ public class EmojiGG : IEmojiApi
 
 	public Emoji GetEmojiFromId(string emojiId)
 	{
-		throw new NotSupportedException("There is currently no way to get a single emoji by ID from emoji.gg, due to their very tiny API. Therefore, you cannot use this method.");
+		// so.... emoji.gg has one endpoint but it returns a list of every emoji ever made on the site since it first launched (about 5K at the time of writing this comment)
+		// why the f**k they would do that, i have no idea. but it's all we got to work with :sob:
+		
+		// the url in question btw: https://emoji.gg/api/
+		// so we're gonna have to get all the emojis and then filter them by the ID
+		
+		// this only responds with 5K emojis wtf piss off emoji.gg
+		// var response = RevoltClient.Instance.Get<EmojiGGEmote[]>($"{APIUrl}api/");
+		// var emotes = response.Result!;
+		//
+		// var emote = emotes.FirstOrDefault(e => e.Slug == emojiId);
+		// if (emote == null)
+		// {
+		// 	throw new Exception("Emoji not found! Maybe it's too old...");
+		// }
+		//
+		// // Ask the user for the name of the emoji
+		// var name = AnsiConsole.Ask("What do you want the emoji to be called? (lowercase alphabet only)", GetCleanEmojiName(emote.Title));
+		//
+		// var emoji = new Emoji
+		// {
+		// 	Name = GetCleanEmojiName(name),
+		// 	Url = emote.Image,
+		// 	
+		// 	FormFileName = emote.Image.Split('/').Last()
+		// };
+		//
+		// emoji.FileInfo = Utils.GenerateEmojiFileInfo(emoji);
+		//
+		// return emoji;
+		
+		throw new NotSupportedException("This API does not support getting a single emoji by ID. Emoji.gg does not have an easy way to implement this, so it's not supported.");
 	}
 
 	// THIS IS REQUIRED because Revolt SUPPORTS ONLY lowercase alphabet-only names for emojis.
 	private string GetCleanEmojiName(string dirtyBoy)
 	{
-		var split = dirtyBoy.Split('-');
-		return string.Join(null, split[1..]);
+		var split = dirtyBoy.ToLower().Split('-');
+		split = split.Select(s => new string(s.Where(ch => !char.IsNumber(ch)).ToArray())).ToArray();
+		
+		return string.Join(null, split);
 	}
 }
 
 public class EmojiGGPacksResponse
 {
 	public Emoji[] Emotes;
+}
+
+public class EmojiGGEmote
+{
+	[JsonProperty("title")] public string Title;
+	[JsonProperty("slug")] public string Slug;
+	[JsonProperty("image")] public string Image;
 }

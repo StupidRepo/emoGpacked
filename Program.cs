@@ -19,7 +19,7 @@ internal class Program
 		SingleEmoji
 	}
 	
-	public static readonly IEmojiApi[] APIs = [
+	public static readonly IEmojiAPI[] APIs = [
 		new EmojiGG()
 	];
 
@@ -57,7 +57,7 @@ internal class Program
 		
 		// Ask which API to use
 		var api = AnsiConsole.Prompt(
-			new SelectionPrompt<IEmojiApi>()
+			new SelectionPrompt<IEmojiAPI>()
 				.Title("Which API do you want to use?")
 				.AddChoices(APIs)
 				.UseConverter(api => api.APIName)
@@ -85,7 +85,7 @@ internal class Program
 		}
 	}
 
-	private static void DoAskLoop(IEmojiApi api, string serverId)
+	private static void DoAskLoop(IEmojiAPI api, string serverId)
 	{
 		// Ask for the process type
 		var processType = AnsiConsole.Prompt(

@@ -34,7 +34,7 @@ internal static class Utils
 			var server = RevoltClient.Instance.Get<Server>("https://api.revolt.chat/servers/" + serverId);
 			if (!server.IsSuccess)
 			{
-				throw new ServerSentErrorException(server.Error!);
+				throw new ServerSentErrorException(server.Error!, $"does the server {serverId} exist?");
 			}
 			
 			servers.Add(server.Result!);
@@ -43,7 +43,7 @@ internal static class Utils
 		return servers.ToArray();
 	}
 	
-	internal static void ProcessSingleEmoji(IEmojiApi api, string emojiId, string serverId)
+	internal static void ProcessSingleEmoji(IEmojiAPI api, string emojiId, string serverId)
 	{
 		try
 		{
@@ -55,19 +55,7 @@ internal static class Utils
 			}
 
 			DownloadEmoji(emoji);
-
-			var response = RevoltClient.Instance.UploadToAutumn<Emoji.UploadResponse>("emojis", emoji.FileInfo.FullName, emoji.FormFileName);
-			if (!response.IsSuccess)
-			{
-				throw new ServerSentErrorException(response.Error!);
-				// Stfu, IntelliJ. If you were smart, you would know IsSuccess is checking if Error is null already.
-				// F**k off!
-			}
-
-			var autumnId = response.Result!.Id;
-			FinaliseEmoji(serverId, autumnId, emoji);
-
-			AnsiConsole.MarkupLine($"[bold green]Successfully uploaded {emoji.Name}![/]");
+			UploadEmoji(emoji, serverId);
 		}
 		catch (Exception e)
 		{
@@ -75,7 +63,7 @@ internal static class Utils
 		}
 	}
 	
-	internal static void ProcessEmojiPack(IEmojiApi api, string packId, string serverId)
+	internal static void ProcessEmojiPack(IEmojiAPI api, string packId, string serverId)
 	{
 		try
 		{
@@ -89,26 +77,7 @@ internal static class Utils
 
 			foreach (var emoji in emojis)
 			{
-				try
-				{
-					AnsiConsole.MarkupLine($"[bold]Processing {emoji.Name}...[/]");
-
-					var response =
-						RevoltClient.Instance.UploadToAutumn<Emoji.UploadResponse>("emojis", emoji.FileInfo!.FullName, emoji.FormFileName);
-					if (!response.IsSuccess)
-					{
-						throw new ServerSentErrorException(response.Error!);
-					}
-
-					var autumnId = response.Result!.Id;
-
-					FinaliseEmoji(serverId, autumnId, emoji);
-
-					AnsiConsole.MarkupLine($"[bold green]Successfully uploaded {emoji.Name}![/]");
-				} catch (Exception e)
-				{
-					AnsiConsole.MarkupLine($"[bold red]Error trying to process emoji {emoji.Name}: {e.Message}[/]");
-				}
+				UploadEmoji(emoji, serverId);
 			}
 		} 
 		catch (Exception e)
@@ -164,10 +133,51 @@ internal static class Utils
 		var response = RevoltClient.Instance.DoRequest<Emoji.FinaliseCommon>(request);
 		if (!response.IsSuccess)
 		{
-			throw new ServerSentErrorException(response.Error!);
+			throw new ServerSentErrorException(response.Error!, "finalising emoji failed");
 		}
 		
 		AnsiConsole.MarkupLine("[bold green]Successfully finalised emoji![/]");
+	}
+
+	internal static void UploadEmoji(Emoji emoji, string serverId)
+	{
+		try
+		{
+			AnsiConsole.MarkupLine($"[bold]Processing {emoji.Name}...[/]");
+
+			var response =
+				RevoltClient.Instance.UploadToAutumn<Emoji.UploadResponse>("emojis", emoji.FileInfo!.FullName, emoji.FormFileName);
+			if (!response.IsSuccess)
+			{
+				throw new ServerSentErrorException(response.Error!, "uploading to autumn failed, is the file too big?");
+			}
+
+			var autumnId = response.Result!.Id;
+			
+			const int MAX_ATTEMPTS = 3;
+			for (var attempt = 0; attempt < MAX_ATTEMPTS; attempt++)
+			{
+				try
+				{
+					FinaliseEmoji(serverId, autumnId, emoji);
+					break;
+				}
+				catch (Exception e)
+				{
+					var retryTime = (attempt + 1) * 1000 * 2;
+					
+					AnsiConsole.MarkupLine($"[bold red]Error trying to finalise emoji {emoji.Name}: {e.Message} (attempt {attempt+1}/{MAX_ATTEMPTS})[/]");
+					AnsiConsole.MarkupLine($"[bold blue]Retrying in {retryTime}ms...[/]");
+
+					Thread.Sleep(retryTime);
+				}
+			}
+
+			AnsiConsole.MarkupLine($"[bold green]Successfully uploaded {emoji.Name}![/]");
+		} catch (Exception e)
+		{
+			AnsiConsole.MarkupLine($"[bold red]Error trying to process emoji {emoji.Name}: {e.Message}[/]");
+		}
 	}
 
 	public static FileInfo GenerateEmojiFileInfo(Emoji emoji)

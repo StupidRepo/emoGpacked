@@ -27,7 +27,7 @@ A C# tool for uploading emoji.gg packs to a Revolt server.
 ## Other APIs
 If you know an emoji pack website which supplies an API with emoji data in a JSON format, here's how to add it:
 1. Fork this repository
-2. Add a new class under the `APIs` folder. Make it extend `IEmojiApi`. 
+2. Make a new class, of which extends `IEmojiAPI`, in the `APIs` folder. 
    - Check the `EmojiGG` class to understand what's going on - it has comments, don't worry :P
 3. Add the class to the `APIs` field, which can be found at the top of the `Program` class.
 4. Test it out, make sure it works, and then create a PR!
