@@ -2,53 +2,42 @@ on:
   workflow_dispatch:
   pull_request:
     branches:
-      - main
+      - c#
   push:
     branches:
-      - main
+      - c#
 
 jobs:
   build:
     runs-on: ubuntu-latest
-
+    
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Go
-        uses: actions/setup-go@v5
+      - name: Setup .NET Core
+        uses: actions/setup-dotnet@v1
         with:
-          go-version: 1.24.0
-
-      - name: Get dependencies
-        run: go mod tidy
-
-      - name: Build
-        run: go build -o emoGpacked ./cmd/
-
-      - name: Upload artifact
+          dotnet-version: '8.0.x'
+      - run: dotnet publish -c Release -o .
+      
+      - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
           name: linux_emoGpacked
-          path: 'emoGpacked'
-  build_windows:
-    runs-on: windows-latest
+          path: 'emoGspaced'
 
+  windows_build:
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Set up Go
-        uses: actions/setup-go@v5
+      - name: Setup .NET Core
+        uses: actions/setup-dotnet@v1
         with:
-          go-version: 1.24.0
-
-      - name: Get dependencies
-        run: go mod tidy
-
-      - name: Build
-        run: go build -o emoGpacked.exe ./cmd/
-
-      - name: Upload artifact
+          dotnet-version: '8.0.x'
+      - run: dotnet publish -c Release -o .
+      
+      - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
           name: windows_emoGpacked
-          path: 'emoGpacked.exe'
+          path: 'emoGspaced.exe'

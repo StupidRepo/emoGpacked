@@ -2,10 +2,16 @@
 
     <PropertyGroup>
         <OutputType>Exe</OutputType>
+        <AssemblyName>emoGpaced</AssemblyName>
         <TargetFramework>net8.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <NoWarn>CS8618</NoWarn>
+        
+        <PublishSingleFile>true</PublishSingleFile>
+        <PublishReadyToRun>true</PublishReadyToRun>
+        <DebugSymbols>false</DebugSymbols>
+        <IncludeDebugSymbolsProjectOutputGroup>false</IncludeDebugSymbolsProjectOutputGroup>
     </PropertyGroup>
 
     <ItemGroup>
