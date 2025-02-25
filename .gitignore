@@ -1,4 +1,6 @@
-go.sum
 .idea
+obj
+*.DotSettings.user
 .env
 servers.json
+bin
