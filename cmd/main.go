@@ -56,7 +56,7 @@ func main() {
 
 	time.Sleep(1 * time.Second)
 
-	fmt.Print("Enter the URL of the pack to use: ")
+	fmt.Print("Enter the URL of the pack to download: ")
 	packURL, _ := reader.ReadString('\n')
 	packURL = strings.TrimSpace(packURL)
 
