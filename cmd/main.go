@@ -13,7 +13,8 @@ import (
 	"time"
 )
 
-//var uploadGIFs *bool
+// var uploadGIFs *bool
+var maxTries = 3
 
 func main() {
 	//uploadGIFs = flag.Bool("g", false, "Whether to upload GIFs or not.")
@@ -128,6 +129,14 @@ func StartEmojiProcess(url string, serverID string) {
 
 	// Download the emojis
 	for _, emoji := range emojiPack.Emojis {
+		emojiSplit := strings.Split(emoji.Name, "-")
+		emojiName := strings.TrimSpace(strings.Join(emojiSplit[1:], ""))
+
+		if emojiName == "" {
+			utils.Logger.Printf("Skipping emoji %s because it has no final name.", emoji.Name)
+			continue
+		}
+
 		err, data := utils.GET(emoji.URL)
 		if err != nil {
 			utils.Logger.Printf("Failed to get emoji %s: %v", emoji.Name, err)
@@ -157,8 +166,6 @@ func StartEmojiProcess(url string, serverID string) {
 		//	}
 		//}
 
-		emojiSplit := strings.Split(emoji.Name, "-")
-		emojiName := strings.Join(emojiSplit[1:], "")
 		dlEmojis = append(dlEmojis, models.DownloadedEmoji{
 			Name:   emojiName,
 			Path:   fmt.Sprintf("%s/%s", *utils.TempDir, ending),
@@ -180,19 +187,32 @@ func StartEmojiProcess(url string, serverID string) {
 			continue
 		}
 
-		_, err = utils.Session.EmojiCreate(
-			uplFile.ID,
-			revoltgo.EmojiCreateData{
-				Name: emoji.Name,
-				Parent: &revoltgo.EmojiParent{
-					Type: "Server",
-					ID:   serverID,
-				},
-			},
-		)
+		tries := 0
 
-		if err != nil {
-			utils.Logger.Printf("Failed to create emoji %s on server: %v", emoji.Name, err)
+		for tries < maxTries {
+			_, err = utils.Session.EmojiCreate(
+				uplFile.ID,
+				revoltgo.EmojiCreateData{
+					Name: emoji.Name,
+					Parent: &revoltgo.EmojiParent{
+						Type: "Server",
+						ID:   serverID,
+					},
+				},
+			)
+
+			if err != nil {
+				utils.Logger.Printf("Failed to create emoji %s on server, retrying in 3 seconds... (%d/%d)", emoji.Name, tries+1, maxTries)
+				tries++
+
+				time.Sleep(3 * time.Second)
+			} else {
+				break
+			}
+		}
+
+		if tries == maxTries {
+			utils.Logger.Printf("Failed to create emoji %s on server after %d tries.", emoji.Name, maxTries)
 			continue
 		}
 
