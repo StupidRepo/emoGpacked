@@ -32,13 +32,11 @@ If you know an emoji pack website which supplies an API with emoji data in a JSO
 3. Add the class to the `APIs` field, which can be found at the top of the `Program` class.
 4. Test it out, make sure it works, and then create a PR!
 
-
 ## Building
-1. Install Go.
+1. Install .NET 8.
 2. Clone the repository.
-3. Run `go build -o emoGpacked ./cmd` in the repository directory.
-   - If you're on Windows, run `go build -o emoGpacked.exe ./cmd` instead.
+3. Run `dotnet publish -c Release -o .` in the repository directory.
 4. The binary will be in the repository directory.
 
-[nightly]: https://nightly.link/StupidRepo/emoGpacked/workflows/build/main?preview
+[nightly]: https://nightly.link/StupidRepo/emoGpacked/workflows/build/c#?preview
 [p]: https://emoji.gg/packs
