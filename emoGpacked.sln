@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "emojiGpacked", "emojiGpacked.csproj", "{0F36C9CE-A9E2-47B8-88DD-1E466C851B48}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "emoGpacked", "emoGpacked.csproj", "{0F36C9CE-A9E2-47B8-88DD-1E466C851B48}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
