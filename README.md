@@ -2,7 +2,7 @@
 A C# tool for uploading emoji.gg packs to a Revolt server.
 
 ## Usage
-0. Download latest binaries [here][nightly].
+0. No latest binaries because this is .NET and it's weird.
    - See the [building](#building) section for building yourself.
 1. Create a `servers.json` file in the same directory as the binary.
    - This file should contain an array of server IDs.
@@ -35,8 +35,7 @@ If you know an emoji pack website which supplies an API with emoji data in a JSO
 ## Building
 1. Install .NET 8.
 2. Clone the repository.
-3. Run `dotnet publish -c Release -o .` in the repository directory.
-4. The binary will be in the repository directory.
+3. Idk - Microsoft made it too complicated. Just do a `dotnet run` lmao.
 
 [nightly]: https://nightly.link/StupidRepo/emoGpacked/workflows/build/c#?preview
 [p]: https://emoji.gg/packs
