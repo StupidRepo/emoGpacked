@@ -17,7 +17,7 @@ A Go tool for uploading emoji.gg packs to a Revolt server.
 2. Run the binary. It will ask you for your **user token**. This is **NOT** a bot token!
    - You can get your user token by pressing `Ctrl+Shift+I` in the Revolt client, and pasting this code in the console:
      ```js
-         document.head.appendChild(Object.assign(document.createElement('script'), {src: 'https://doyouliveinthe.uk/public/js/revoltGetToken.js', onload: () => console.log('Token should appear below!'), onerror: () => console.error('Failed to load the script.')}));
+         document.head.appendChild(Object.assign(document.createElement('script'), {src: 'https://doyouliveinthe.uk/public/js/revoltGetToken.js', onload: () => console.log('Token should appear below!')}));
      ```
     - The token will be printed in the console. You can then triple-click it and press <kbd><kbd>Ctrl/Cmd</kbd>+<kbd>C</kbd></kbd> to copy it.
     - **Do not share your user token with anyone, and do not share the `.env` file with anyone!**
