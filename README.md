@@ -1,5 +1,5 @@
 # emoGpacked
-A Go tool for uploading emoji.gg packs to a Revolt server.
+A C# tool for uploading emoji.gg packs to a Revolt server.
 
 ## Usage
 0. Download latest binaries [here][nightly].
@@ -22,28 +22,16 @@ A Go tool for uploading emoji.gg packs to a Revolt server.
     - The token will be printed in the console. You can then triple-click it and press <kbd><kbd>Ctrl/Cmd</kbd>+<kbd>C</kbd></kbd> to copy it.
     - **Do not share your user token with anyone, and do not share the `.env` file with anyone!**
     - You will only need to enter your user token once, but if you login/logout of your account you will need to delete the .env file the script has generated.
-3. Enter the URL of the emoji pack you want to upload.
-   - You can find emoji packs from [emoji.gg/packs][p] or [other supported websites](#other-apis).
-   - If you are using an emoji.gg pack link, copy the link and append `&type=json` to the end.
-     - Example: `https://emoji.gg/pack/14495-kermit-pack&type=json`
-4. A list will appear with the servers you have in the `servers.json` file.
-   - Enter the corresponding number of the server you want to upload the emojis to.
-   - If you want to upload to the default server, just press Enter.
-5. The emojis will be uploaded to the server you selected.
+3. You will get a menu of options to proceed through :)
 
 ## Other APIs
-If you know an emoji pack website which supplies emoji data in the following JSON format, it will work with this tool.
-```json
-{
-  // Doesn't matter if there are fields before/after this. Just as long as there is an array called "emotes".
-  "emotes": [
-    {
-      "name": "23232-emoji-name", // Format = [ID]-[Name seperated by hyphens]
-      "url": "https://example.com/emoji.png"
-    }
-  ]
-}
-```
+If you know an emoji pack website which supplies an API with emoji data in a JSON format, here's how to add it:
+1. Fork this repository
+2. Add a new class under the `APIs` folder. Make it extend `IEmojiApi`. 
+   - Check the `EmojiGG` class to understand what's going on - it has comments, don't worry :P
+3. Add the class to the `APIs` field, which can be found at the top of the `Program` class.
+4. Test it out, make sure it works, and then create a PR!
+
 
 ## Building
 1. Install Go.

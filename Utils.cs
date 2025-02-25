@@ -14,7 +14,7 @@ internal static class Utils
 	
 	public static readonly string TempDir = Path.GetTempPath();
 
-	internal static string[] GetServerNames()
+	internal static Server[] GetServers()
 	{
 		if(!File.Exists("servers.json"))
 		{
@@ -25,9 +25,9 @@ internal static class Utils
 			return [];
 		}
 		
-		var servers = File.ReadAllText("servers.json");
-		var serverIds = JsonConvert.DeserializeObject<string[]>(servers) ?? [];
-		var serverNames = new List<string>();
+		var serversJson = File.ReadAllText("servers.json");
+		var serverIds = JsonConvert.DeserializeObject<string[]>(serversJson) ?? [];
+		var servers = new List<Server>();
 		
 		foreach (var serverId in serverIds)
 		{
@@ -37,10 +37,10 @@ internal static class Utils
 				throw new ServerSentErrorException(server.Error!);
 			}
 			
-			serverNames.Add(server.Result!.Name);
+			servers.Add(server.Result!);
 		}
 		
-		return serverNames.ToArray();
+		return servers.ToArray();
 	}
 	
 	internal static void ProcessSingleEmoji(IEmojiApi api, string emojiId, string serverId)
@@ -56,7 +56,7 @@ internal static class Utils
 
 			DownloadEmoji(emoji);
 
-			var response = RevoltClient.Instance.UploadToAutumn<Emoji.UploadResponse>("emojis", emoji.FileInfo.FullName);
+			var response = RevoltClient.Instance.UploadToAutumn<Emoji.UploadResponse>("emojis", emoji.FileInfo.FullName, emoji.FormFileName);
 			if (!response.IsSuccess)
 			{
 				throw new ServerSentErrorException(response.Error!);
@@ -89,20 +89,26 @@ internal static class Utils
 
 			foreach (var emoji in emojis)
 			{
-				var response =
-					RevoltClient.Instance.UploadToAutumn<Emoji.UploadResponse>("emojis", emoji.FileInfo!.FullName);
-				if (!response.IsSuccess)
+				try
 				{
-					throw new ServerSentErrorException(response.Error!);
+					AnsiConsole.MarkupLine($"[bold]Processing {emoji.Name}...[/]");
+
+					var response =
+						RevoltClient.Instance.UploadToAutumn<Emoji.UploadResponse>("emojis", emoji.FileInfo!.FullName, emoji.FormFileName);
+					if (!response.IsSuccess)
+					{
+						throw new ServerSentErrorException(response.Error!);
+					}
+
+					var autumnId = response.Result!.Id;
+
+					FinaliseEmoji(serverId, autumnId, emoji);
+
+					AnsiConsole.MarkupLine($"[bold green]Successfully uploaded {emoji.Name}![/]");
+				} catch (Exception e)
+				{
+					AnsiConsole.MarkupLine($"[bold red]Error trying to process emoji {emoji.Name}: {e.Message}[/]");
 				}
-
-				var autumnId = response.Result!.Id;
-
-				AnsiConsole.WriteLine($"Got autumn ID: {autumnId}");
-
-				FinaliseEmoji(serverId, autumnId, emoji);
-
-				AnsiConsole.MarkupLine($"[bold green]Successfully uploaded {emoji.Name}![/]");
 			}
 		} 
 		catch (Exception e)

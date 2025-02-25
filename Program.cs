@@ -2,6 +2,7 @@
 using System.Text;
 using DotNetEnv;
 using emoGpacked.APIs;
+using emoGpacked.Models;
 using EnumsNET;
 using Spectre.Console;
 
@@ -18,9 +19,7 @@ internal class Program
 		SingleEmoji
 	}
 	
-	public static RevoltClient? Client;
-	
-	public static IEmojiApi[] APIs = [
+	public static readonly IEmojiApi[] APIs = [
 		new EmojiGG()
 	];
 
@@ -52,8 +51,8 @@ internal class Program
 			Console.WriteLine("Token saved to .env");
 		}
 		
-		Client = new RevoltClient(token);
-		
+		// Create the client
+		var client = new RevoltClient(token);
 		AnsiConsole.MarkupLine("[bold green]Successfully made client![/]");
 		
 		// Ask which API to use
@@ -64,7 +63,7 @@ internal class Program
 				.UseConverter(api => api.APIName)
 		);
 
-		var servers = Utils.GetServerNames();
+		var servers = Utils.GetServers();
 		if (servers.Length == 0)
 		{
 			AnsiConsole.MarkupLine("[bold red]No servers found in servers.json! Exiting...[/]");
@@ -72,16 +71,17 @@ internal class Program
 		}
 		
 		// Ask for the server
-		var serverId = AnsiConsole.Prompt(
-			new SelectionPrompt<string>()
-				.Title("Which server do you want to upload emojis to?")
+		var server = AnsiConsole.Prompt(
+			new SelectionPrompt<Server>()
+				.Title("Which server do you want to upload to?")
 				.AddChoices(servers)
+				.UseConverter(server => server.Name)
 		);
 		
 		// Ask the user if they want
 		while (true)
 		{
-			DoAskLoop(api, serverId);
+			DoAskLoop(api, server.Id);
 		}
 	}
 

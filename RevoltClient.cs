@@ -55,12 +55,12 @@ public class RevoltClient
 		};
 	}
 	
-	public ApiResponse<T> UploadToAutumn<T>(string endpoint, string filePath)
+	public ApiResponse<T> UploadToAutumn<T>(string endpoint, string filePath, string fileName)
 	{
 		var request = new HttpRequestMessage(HttpMethod.Post, AutumnApiBase + endpoint);
 		request.Content = new MultipartFormDataContent
 		{
-			{ new ByteArrayContent(File.ReadAllBytes(filePath)), "file", Path.GetFileName(filePath) }
+			{ new ByteArrayContent(File.ReadAllBytes(filePath)), "file", fileName }
 		};
 		return DoRequest<T>(request);
 	}
