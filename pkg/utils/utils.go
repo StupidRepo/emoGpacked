@@ -45,7 +45,14 @@ func GET(url string) (error, io.ReadCloser) {
 
 func GETJson(url string, target interface{}) error {
 	// Get the response
-	resp, err := Client.Get(url)
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return err
+	}
+
+	req.Header.Set("x-session-token", Session.Token)
+
+	resp, err := Client.Do(req)
 	if err != nil {
 		return err
 	}
@@ -58,6 +65,20 @@ func GETJson(url string, target interface{}) error {
 
 	// Decode the response
 	return json.NewDecoder(resp.Body).Decode(target)
+}
+
+func GetServersList() (error, []string) {
+	// Get from servers.json
+	file, err := os.Open("servers.json")
+	if err != nil {
+		return err, nil
+	}
+
+	// Decode the JSON
+	var servers *[]string
+	err = json.NewDecoder(file).Decode(&servers)
+
+	return err, *servers
 }
 
 // UploadEmojiToAutumn uploads an emoji to Revolt Autumn.

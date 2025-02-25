@@ -8,7 +8,9 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/sentinelb51/revoltgo"
 	"os"
+	"strconv"
 	"strings"
+	"time"
 )
 
 //var uploadGIFs *bool
@@ -41,34 +43,9 @@ func main() {
 				"TOKEN": token,
 			}, ".env")
 			if err != nil {
-				utils.Logger.Println("Failed to write the token to the .env file: %v", err)
+				utils.Logger.Printf("Failed to write the token to the .env file: %v", err)
 			}
 		}
-	}
-
-	fmt.Print("Enter the server ID to upload the emojis to: ")
-	serverID, _ := reader.ReadString('\n')
-	serverID = strings.TrimSpace(serverID)
-
-	fmt.Print("Enter the URL of the pack to use: ")
-	packURL, _ := reader.ReadString('\n')
-	packURL = strings.TrimSpace(packURL)
-
-	//if !*uploadGIFs {
-	//	utils.Logger.Println("GIFs will not be uploaded due to a weird Revolt issue where GIFs uploaded by this tool are not correctly displayed on the frontend." +
-	//		"\nIf you want to upload GIFs, specify the -g flag.")
-	//}
-
-	if token == "" {
-		utils.Logger.Println("No token provided.")
-	}
-
-	if serverID == "" {
-		utils.Logger.Println("No server ID provided.")
-	}
-
-	if packURL == "" {
-		utils.Logger.Println("No pack URL provided.")
 	}
 
 	utils.Session = revoltgo.New(token)
@@ -77,7 +54,53 @@ func main() {
 		utils.Logger.Fatal(err)
 	}
 
-	StartEmojiProcess(packURL, serverID)
+	time.Sleep(1 * time.Second)
+
+	fmt.Print("Enter the URL of the pack to use: ")
+	packURL, _ := reader.ReadString('\n')
+	packURL = strings.TrimSpace(packURL)
+
+	if token == "" {
+		utils.Logger.Println("No token provided.")
+	}
+
+	if packURL == "" {
+		utils.Logger.Println("No pack URL provided.")
+	}
+
+	err, servers := utils.GetServersList()
+	if err != nil {
+		utils.Logger.Fatalf("Failed to get the servers list from servers.json: %v", err)
+	}
+
+	fmt.Println("Servers:")
+	for i, serverId := range servers {
+		server, err := utils.Session.Server(serverId)
+		if err != nil {
+			utils.Logger.Fatalf("Failed to get the server %s: %v", serverId, err)
+		}
+
+		fmt.Printf("%d: %s\n", i, server.Name)
+	}
+
+	fmt.Print("Choose a server to upload the emojis to (default = 0): ")
+	serverNumStr, _ := reader.ReadString('\n')
+	serverNumStr = strings.TrimSpace(serverNumStr)
+
+	serverNum := 0
+	if serverNumStr != "" {
+		serverNum, err = strconv.Atoi(serverNumStr)
+		if err != nil {
+			utils.Logger.Println("Failed to parse the server number: %v", err)
+		}
+	}
+
+	//if !*uploadGIFs {
+	//	utils.Logger.Println("GIFs will not be uploaded due to a weird Revolt issue where GIFs uploaded by this tool are not correctly displayed on the frontend." +
+	//		"\nIf you want to upload GIFs, specify the -g flag.")
+	//}
+
+	StartEmojiProcess(packURL, servers[serverNum])
 	defer func() {
 		utils.Logger.Println("Gracefully shutting down! :D")
 
