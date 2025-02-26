@@ -1,5 +1,5 @@
 # emoGpacked
-A Go tool for uploading emoji.gg packs to a Revolt server.
+A Go tool for uploading emoji.gg packs to a Revolt server. **PLEASE USE THE [C#](b-cs) VERSION!**
 
 ## Usage
 0. Download latest binaries [here][nightly].
@@ -54,3 +54,4 @@ If you know an emoji pack website which supplies emoji data in the following JSO
 
 [nightly]: https://nightly.link/StupidRepo/emoGpacked/workflows/build/main?preview
 [p]: https://emoji.gg/packs
+[b-cs]: https://github.com/StupidRepo/emoGpacked/tree/c%23
