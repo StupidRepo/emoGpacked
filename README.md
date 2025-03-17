@@ -1,5 +1,5 @@
 # emoGpacked
-A Go tool for uploading emoji.gg packs to a Revolt server. **PLEASE USE THE [C#](b-cs) VERSION!**
+A Go tool for uploading emoji.gg packs to a Revolt server. **PLEASE USE THE [C#][b-cs] VERSION!**
 
 ## Usage
 0. Download latest binaries [here][nightly].
