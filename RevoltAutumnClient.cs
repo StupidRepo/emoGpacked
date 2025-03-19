@@ -3,22 +3,14 @@ using Newtonsoft.Json;
 
 namespace emoGpacked;
 
-public class RevoltClient
+public class RevoltAutumnClient(string token)
 {
-	public readonly string Token;
+	public readonly string Token = token;
 
 	public const string ApiBase = "https://app.revolt.chat/api/";
 	public const string AutumnApiBase = "https://autumn.revolt.chat/";
 
 	public readonly HttpClient RequestClient = new();
-	
-	public static RevoltClient Instance { get; private set; } = null!;
-
-	public RevoltClient(string token)
-	{
-		Instance = this;
-		Token = token;
-	}
 
 	public ApiResponse<T> GetEndpoint<T>(string endpoint)
 	{

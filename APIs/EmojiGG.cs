@@ -11,9 +11,9 @@ public class EmojiGG : IEmojiAPI
 	
 	public string? InputText => null; // Displayed to user
 	
-	public Emoji[] GetEmojisFromPack(string packId)
+	public Emoji[] GetEmojisFromPack(string packId, RevoltAutumnClient autumnClient)
 	{
-		var response = RevoltClient.Instance.Get<EmojiGGPacksResponse>($"{APIUrl}pack/{packId}&type=json");
+		var response = autumnClient.Get<EmojiGGPacksResponse>($"{APIUrl}pack/{packId}&type=json");
 		var emotes = response.Result!.Emotes;
 		
 		foreach (var emote in emotes)
@@ -26,7 +26,7 @@ public class EmojiGG : IEmojiAPI
 		return emotes;
 	}
 
-	public Emoji GetEmojiFromId(string emojiId)
+	public Emoji GetEmojiFromId(string emojiId, RevoltAutumnClient autumnClient)
 	{
 		// so.... emoji.gg has one endpoint but it returns a list of every emoji ever made on the site since it first launched (about 5K at the time of writing this comment)
 		// why the f**k they would do that, i have no idea. but it's all we got to work with :sob:

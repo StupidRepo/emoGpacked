@@ -13,41 +13,12 @@ internal static class Utils
 	internal static readonly HttpClient DLClient = new();
 	
 	public static readonly string TempDir = Path.GetTempPath();
-
-	internal static Server[] GetServers()
-	{
-		if(!File.Exists("servers.json"))
-		{
-			var file = File.CreateText("servers.json");
-			file.Write("[]");
-			file.Close();
-
-			return [];
-		}
-		
-		var serversJson = File.ReadAllText("servers.json");
-		var serverIds = JsonConvert.DeserializeObject<string[]>(serversJson) ?? [];
-		var servers = new List<Server>();
-		
-		foreach (var serverId in serverIds)
-		{
-			var server = RevoltClient.Instance.Get<Server>("https://api.revolt.chat/servers/" + serverId);
-			if (!server.IsSuccess)
-			{
-				throw new ServerSentErrorException(server.Error!, $"does the server {serverId} exist?");
-			}
-			
-			servers.Add(server.Result!);
-		}
-		
-		return servers.ToArray();
-	}
 	
-	internal static void ProcessSingleEmoji(IEmojiAPI api, string emojiId, string serverId)
+	internal static void ProcessSingleEmoji(IEmojiAPI api, string emojiId, string serverId, RevoltAutumnClient autumnClient)
 	{
 		try
 		{
-			var emoji = api.GetEmojiFromId(emojiId);
+			var emoji = api.GetEmojiFromId(emojiId, autumnClient);
 
 			if (emoji.FileInfo == null)
 			{
@@ -55,7 +26,7 @@ internal static class Utils
 			}
 
 			DownloadEmoji(emoji);
-			UploadEmoji(emoji, serverId);
+			UploadEmoji(emoji, serverId, autumnClient);
 		}
 		catch (Exception e)
 		{
@@ -63,11 +34,11 @@ internal static class Utils
 		}
 	}
 	
-	internal static void ProcessEmojiPack(IEmojiAPI api, string packId, string serverId)
+	internal static void ProcessEmojiPack(IEmojiAPI api, string packId, string serverId, RevoltAutumnClient autumnClient)
 	{
 		try
 		{
-			var emojis = api.GetEmojisFromPack(packId);
+			var emojis = api.GetEmojisFromPack(packId, autumnClient);
 			if (emojis.Any(emoji => emoji.FileInfo == null))
 			{
 				throw new ArgumentNullException(nameof(emojis));
@@ -77,7 +48,7 @@ internal static class Utils
 
 			foreach (var emoji in emojis)
 			{
-				UploadEmoji(emoji, serverId);
+				UploadEmoji(emoji, serverId, autumnClient);
 			}
 		} 
 		catch (Exception e)
@@ -110,7 +81,7 @@ internal static class Utils
 		}
 	}
 	
-	internal static void FinaliseEmoji(string serverId, string autumnId, Emoji emoji)
+	internal static void FinaliseEmoji(string serverId, string autumnId, Emoji emoji, RevoltAutumnClient autumnClient)
 	{
 		var finalise = new Emoji.FinaliseCommon
 		{
@@ -125,12 +96,12 @@ internal static class Utils
 		var json = JsonConvert.SerializeObject(finalise);
 		var content = new StringContent(json, Encoding.UTF8, "application/json");
 		
-		var request = new HttpRequestMessage(HttpMethod.Put, RevoltClient.ApiBase + "custom/emoji/" + autumnId)
+		var request = new HttpRequestMessage(HttpMethod.Put, RevoltAutumnClient.ApiBase + "custom/emoji/" + autumnId)
 		{
 			Content = content
 		};
 		
-		var response = RevoltClient.Instance.DoRequest<Emoji.FinaliseCommon>(request);
+		var response = autumnClient.DoRequest<Emoji.FinaliseCommon>(request);
 		if (!response.IsSuccess)
 		{
 			throw new ServerSentErrorException(response.Error!, "finalising emoji failed");
@@ -139,14 +110,14 @@ internal static class Utils
 		AnsiConsole.MarkupLine("[bold green]Successfully finalised emoji![/]");
 	}
 
-	internal static void UploadEmoji(Emoji emoji, string serverId)
+	internal static void UploadEmoji(Emoji emoji, string serverId, RevoltAutumnClient autumnClient)
 	{
 		try
 		{
 			AnsiConsole.MarkupLine($"[bold]Processing {emoji.Name}...[/]");
 
 			var response =
-				RevoltClient.Instance.UploadToAutumn<Emoji.UploadResponse>("emojis", emoji.FileInfo!.FullName, emoji.FormFileName);
+				autumnClient.UploadToAutumn<Emoji.UploadResponse>("emojis", emoji.FileInfo!.FullName, emoji.FormFileName);
 			if (!response.IsSuccess)
 			{
 				throw new ServerSentErrorException(response.Error!, "uploading to autumn failed, is the file too big?");
@@ -154,17 +125,17 @@ internal static class Utils
 
 			var autumnId = response.Result!.Id;
 			
-			const int MAX_ATTEMPTS = 3;
+			const int MAX_ATTEMPTS = 4;
 			for (var attempt = 0; attempt < MAX_ATTEMPTS; attempt++)
 			{
 				try
 				{
-					FinaliseEmoji(serverId, autumnId, emoji);
+					FinaliseEmoji(serverId, autumnId, emoji, autumnClient);
 					break;
 				}
 				catch (Exception e)
 				{
-					var retryTime = (attempt + 1) * 1000 * 2;
+					var retryTime = (attempt + 1) * 1150 * 2;
 					
 					AnsiConsole.MarkupLine($"[bold red]Error trying to finalise emoji {emoji.Name}: {e.Message} (attempt {attempt+1}/{MAX_ATTEMPTS})[/]");
 					AnsiConsole.MarkupLine($"[bold blue]Retrying in {retryTime}ms...[/]");
